@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mask/model/store.dart';
-import 'package:flutter_mask/repository/store_repository.dart';
+import 'package:flutter_mask/viewmodel/store_model.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ChangeNotifierProvider.value(
+    value: StoreModel(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -27,27 +31,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var stores = List<Store>();
   var isLoading = false;
-
-  final storeRepository = StoreRepository();
 
   @override
   void initState() {
     super.initState();
-
-    storeRepository.fetch().then((value) {
-      setState(() {
-        this.stores = value;
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final storeModel = Provider.of<StoreModel>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('마스크 재고 있는 곳 : ${stores.where((e) {
+        title: Text('마스크 재고 있는 곳 : ${storeModel.stores.where((e) {
           return e.remainStat == 'plenty' ||
               e.remainStat == 'some' ||
               e.remainStat == 'few';
@@ -56,11 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              storeRepository.fetch().then((value) {
-                setState(() {
-                  stores = value;
-                });
-              });
+              storeModel.fetch();
             },
           )
         ],
@@ -68,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: isLoading
           ? loadingWidget()
           : ListView(
-              children: stores.where((e) {
+              children: storeModel.stores.where((e) {
                 return e.remainStat == 'plenty' ||
                     e.remainStat == 'some' ||
                     e.remainStat == 'few';
