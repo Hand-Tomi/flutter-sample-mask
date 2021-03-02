@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter_mask/model/store.dart';
 import 'package:http/http.dart' as http;
+import 'package:latlong/latlong.dart';
 
 class StoreRepository {
+  final _distance = new Distance();
+
   Future<List<Store>> fetch(double lat, double lng) async {
     final stores = List<Store>();
     var url =
@@ -13,7 +16,11 @@ class StoreRepository {
     final jsonStores = jsonResult['stores'];
 
     jsonStores.forEach((e) {
-      stores.add(Store.fromJson(e));
+      final store = Store.fromJson(e);
+      final km = _distance.as(LengthUnit.Kilometer,
+          new LatLng(store.lat, store.lng), new LatLng(lat, lng));
+      store.km = km;
+      stores.add(store);
     });
     print('fetch완료');
     return stores.where((e) {
